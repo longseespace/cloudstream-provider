@@ -43,4 +43,39 @@ class KKPhimParsingTest {
         assertEquals("tt1234567", KKPhimParsing.externalId("tt1234567"))
         assertNull(KKPhimParsing.externalId(null))
     }
+
+    @Test
+    fun `maps KKPhim language labels to cloudstream badges`() {
+        assertEquals(
+            KKPhimSearchBadges(subbed = true, dubbed = false, episodeCount = 8),
+            KKPhimParsing.searchBadges("Vietsub", "Tập 8", isSeries = true),
+        )
+        assertEquals(
+            KKPhimSearchBadges(subbed = false, dubbed = true, episodeCount = 12),
+            KKPhimParsing.searchBadges("Thuyết Minh", "Hoàn Tất (12/12)", isSeries = true),
+        )
+        assertEquals(
+            KKPhimSearchBadges(subbed = true, dubbed = true, episodeCount = 16),
+            KKPhimParsing.searchBadges("Vietsub + Lồng Tiếng", "Hoàn Tất (16/16)", isSeries = true),
+        )
+    }
+
+    @Test
+    fun `does not report episodes for movies or language badges for trailers`() {
+        assertEquals(
+            KKPhimSearchBadges(subbed = true, dubbed = false, episodeCount = null),
+            KKPhimParsing.searchBadges("Vietsub", "Full", isSeries = false),
+        )
+        assertEquals(
+            KKPhimSearchBadges(subbed = false, dubbed = false, episodeCount = null),
+            KKPhimParsing.searchBadges("Vietsub + Thuyết Minh", "Trailer", isSeries = true),
+        )
+    }
+
+    @Test
+    fun `keeps only useful cam quality on cards`() {
+        assertEquals("CAM", KKPhimParsing.cardQuality("cam"))
+        assertNull(KKPhimParsing.cardQuality("FHD"))
+        assertNull(KKPhimParsing.cardQuality("HD"))
+    }
 }

@@ -12,13 +12,14 @@ import com.lagradost.cloudstream3.SearchResponse
 import com.lagradost.cloudstream3.ShowStatus
 import com.lagradost.cloudstream3.SubtitleFile
 import com.lagradost.cloudstream3.TvType
+import com.lagradost.cloudstream3.addDubStatus
 import com.lagradost.cloudstream3.app
 import com.lagradost.cloudstream3.getQualityFromString
 import com.lagradost.cloudstream3.mainPageOf
+import com.lagradost.cloudstream3.newAnimeSearchResponse
 import com.lagradost.cloudstream3.newEpisode
 import com.lagradost.cloudstream3.newHomePageResponse
 import com.lagradost.cloudstream3.newMovieLoadResponse
-import com.lagradost.cloudstream3.newMovieSearchResponse
 import com.lagradost.cloudstream3.newTvSeriesLoadResponse
 import com.lagradost.cloudstream3.utils.AppUtils.tryParseJson
 import com.lagradost.cloudstream3.utils.ExtractorLink
@@ -165,14 +166,27 @@ class KKPhimProvider : MainAPI() {
     private fun KKPhimMovie.toSearchResponse(imageCdn: String?): SearchResponse? {
         val title = name?.takeIf { it.isNotBlank() } ?: return null
         val movieSlug = slug?.takeIf { it.isNotBlank() } ?: return null
+        val resultType = cloudstreamType()
+        val badges = KKPhimParsing.searchBadges(
+            language = lang,
+            episodeCurrent = episodeCurrent,
+            isSeries = resultType == TvType.TvSeries,
+        )
 
-        return newMovieSearchResponse(title, "$mainUrl/phim/$movieSlug", cloudstreamType()) {
+        return newAnimeSearchResponse(title, "$mainUrl/phim/$movieSlug", resultType) {
             posterUrl = KKPhimParsing.absoluteImageUrl(
                 this@toSearchResponse.posterUrl ?: thumbUrl,
                 imageCdn,
             )
             year = this@toSearchResponse.year
-            quality = getQualityFromString(this@toSearchResponse.quality)
+            quality = KKPhimParsing.cardQuality(this@toSearchResponse.quality)
+                ?.let { getQualityFromString(it) }
+            addDubStatus(
+                dubExist = badges.dubbed,
+                subExist = badges.subbed,
+                dubEpisodes = badges.episodeCount,
+                subEpisodes = badges.episodeCount,
+            )
         }
     }
 

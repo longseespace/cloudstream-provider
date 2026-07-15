@@ -54,6 +54,8 @@ internal data class KKPhimMovie(
     val time: String? = null,
     val quality: String? = null,
     val lang: String? = null,
+    @JsonProperty("episode_current")
+    val episodeCurrent: String? = null,
     val year: Int? = null,
     val actor: List<String> = emptyList(),
     val category: List<KKPhimNamedValue> = emptyList(),

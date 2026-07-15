@@ -22,9 +22,6 @@ jobs:
         uses: actions/checkout@v7
 
       - name: Validate KKPhim API contract
-        # Some KKPhim/CDN hosts reject GitHub's datacenter IPs. Keep the live
-        # check strict locally but do not block packaging when CI is geo-blocked.
-        continue-on-error: true
         run: ./scripts/check-api.sh
 
       - name: Setup JDK 17

@@ -29,7 +29,7 @@ Run the pure parsing tests and live KKPhim contract test:
 ./scripts/check-api.sh
 ```
 
-The live check selects a current Horror title, verifies its detail/episode schema, then requests the first available HLS playlist.
+The live check selects a current Horror title and strictly verifies the genre, detail, episode, and search API contracts. It also probes the first HLS playlist for diagnostics, but a temporary player-CDN 404/403 is advisory because it is independent of KKPhim's API contract.
 
 ## Build
 

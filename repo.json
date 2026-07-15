@@ -1,0 +1,8 @@
+{
+  "name": "KKPhim Genres",
+  "description": "KKPhim CloudStream provider organized by genre",
+  "manifestVersion": 1,
+  "pluginLists": [
+    "https://raw.githubusercontent.com/longseespace/cloudstream-provider/builds/plugins.json"
+  ]
+}

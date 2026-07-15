@@ -1,0 +1,58 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+command -v curl >/dev/null || { echo "curl is required" >&2; exit 1; }
+command -v jq >/dev/null || { echo "jq is required" >&2; exit 1; }
+
+api="https://phimapi.com"
+tmp_dir="$(mktemp -d)"
+trap 'rm -rf "$tmp_dir"' EXIT
+
+genre_json="$tmp_dir/genre.json"
+detail_json="$tmp_dir/detail.json"
+search_json="$tmp_dir/search.json"
+playlist="$tmp_dir/playlist.m3u8"
+
+curl --fail --silent --show-error --location \
+  "$api/v1/api/the-loai/kinh-di?page=1&limit=5" > "$genre_json"
+
+jq -e '
+  .status == true and
+  (.data.APP_DOMAIN_CDN_IMAGE | type == "string") and
+  (.data.items | length > 0) and
+  (.data.params.pagination.totalPages > 0)
+' "$genre_json" >/dev/null
+
+slug="$(jq -r '.data.items[0].slug' "$genre_json")"
+test -n "$slug" && test "$slug" != "null"
+
+curl --fail --silent --show-error --location \
+  "$api/phim/$slug" > "$detail_json"
+
+jq -e '
+  .status == true and
+  (.movie.name | type == "string") and
+  (.movie.category | length > 0) and
+  (.episodes | length > 0) and
+  ([.episodes[].server_data[]?.link_m3u8 | select(type == "string" and length > 0)] | length > 0)
+' "$detail_json" >/dev/null
+
+movie_name="$(jq -r '.movie.name' "$detail_json")"
+stream_url="$(jq -r '[.episodes[].server_data[]?.link_m3u8 | select(type == "string" and length > 0)][0]' "$detail_json")"
+
+curl --fail --silent --show-error --location \
+  --referer "https://kkphim.com/" "$stream_url" > "$playlist"
+grep -q '#EXTM3U' "$playlist"
+
+curl --fail --silent --show-error --location --get \
+  --data-urlencode "keyword=$movie_name" \
+  --data-urlencode "limit=5" \
+  "$api/v1/api/tim-kiem" > "$search_json"
+
+jq -e --arg slug "$slug" '
+  (.status == true or .status == "success") and
+  (.data.items | length > 0) and
+  ([.data.items[].slug] | index($slug) != null)
+' "$search_json" >/dev/null
+
+printf 'KKPhim API integration passed: %s (%s)\n' "$movie_name" "$slug"

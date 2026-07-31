@@ -1,0 +1,22 @@
+[
+    {
+        "fileHash": "sha256-0f9f2610bc861d22090e596eb966e62814075ee0e74a6dd29e0a62f6a413aae1",
+        "apiVersion": 1,
+        "repositoryUrl": "https://github.com/longseespace/cloudstream-provider",
+        "fileSize": 33872,
+        "status": 1,
+        "language": "vi",
+        "authors": [
+            "Daniel"
+        ],
+        "tvTypes": [
+            "Movie",
+            "TvSeries"
+        ],
+        "version": 3,
+        "internalName": "KKPhimGenresProvider",
+        "description": "KKPhim organized by genre, using only the KKPhim API",
+        "url": "https://raw.githubusercontent.com/longseespace/cloudstream-provider/builds/KKPhimGenresProvider.cs3",
+        "name": "KKPhimGenresProvider"
+    }
+]

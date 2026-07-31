@@ -5,6 +5,7 @@ A small, transparent CloudStream provider backed only by KKPhim's public API. Th
 ## Scope
 
 - Genre rows from `GET /v1/api/the-loai/{slug}`
+- The `Phim 18+` row and adult-tagged results follow CloudStream's adult-content setting
 - Paginated home sections
 - Search from `GET /v1/api/tim-kiem`
 - Details and episodes from `GET /phim/{slug}`
@@ -29,7 +30,7 @@ Run the pure parsing tests and live KKPhim contract test:
 ./scripts/check-api.sh
 ```
 
-The live check selects a current Horror title and strictly verifies the genre, detail, episode, and search API contracts. It also probes the first HLS playlist for diagnostics, but a temporary player-CDN 404/403 is advisory because it is independent of KKPhim's API contract.
+The live check verifies that the provider's 26 genres still match KKPhim's taxonomy, then selects a current Horror title and strictly verifies the genre, detail, episode, and search API contracts. It also probes the first HLS playlist for diagnostics, but a temporary player-CDN 404/403 is advisory because it is independent of KKPhim's API contract.
 
 ## Build
 
@@ -64,6 +65,7 @@ Manually verify:
 4. A movie exposes every available language server.
 5. A series displays one episode entry with multiple selectable servers rather than duplicate episodes.
 6. Playback, seeking, casting, and downloading work for an HLS title.
+7. `Phim 18+` is hidden when adult content is disabled and appears after enabling it in CloudStream settings.
 
 ## Publish as a CloudStream repository
 

@@ -7,6 +7,7 @@ import com.lagradost.cloudstream3.LoadResponse.Companion.addActors
 import com.lagradost.cloudstream3.LoadResponse.Companion.addImdbId
 import com.lagradost.cloudstream3.LoadResponse.Companion.addTMDbId
 import com.lagradost.cloudstream3.MainAPI
+import com.lagradost.cloudstream3.MainPageData
 import com.lagradost.cloudstream3.MainPageRequest
 import com.lagradost.cloudstream3.SearchResponse
 import com.lagradost.cloudstream3.ShowStatus
@@ -37,7 +38,7 @@ class KKPhimProvider : MainAPI() {
     override val hasDownloadSupport = true
     override val supportedTypes = setOf(TvType.Movie, TvType.TvSeries)
 
-    override val mainPage = mainPageOf(
+    private val regularMainPage = mainPageOf(
         "kinh-di" to "Kinh Dị",
         "hanh-dong" to "Hành Động",
         "bi-an" to "Bí Ẩn",
@@ -65,7 +66,19 @@ class KKPhimProvider : MainAPI() {
         "phim-ngan" to "Phim Ngắn",
     )
 
+    private val adultMainPage = mainPageOf(ADULT_GENRE_SLUG to "Phim 18+")
+
+    override val mainPage: List<MainPageData>
+        get() = if (adultContentEnabled) regularMainPage + adultMainPage else regularMainPage
+
+    private val adultContentEnabled: Boolean
+        get() = MainAPI.settingsForProvider.enableAdult
+
     override suspend fun getMainPage(page: Int, request: MainPageRequest): HomePageResponse {
+        if (!adultContentEnabled && request.data == ADULT_GENRE_SLUG) {
+            return newHomePageResponse(request, emptyList<SearchResponse>(), false)
+        }
+
         val response = app.get(
             "$mainUrl/v1/api/the-loai/${request.data}",
             params = mapOf("page" to page.toString(), "limit" to PAGE_SIZE.toString()),
@@ -74,12 +87,17 @@ class KKPhimProvider : MainAPI() {
 
         val data = response.data
             ?: throw ErrorLoadingException(response.msg ?: "KKPhim returned no genre data")
-        val results = data.items.mapNotNull { it.toSearchResponse(data.imageCdn) }
+        val includeAdultContent = adultContentEnabled
+        val results = data.items
+            .asSequence()
+            .filter { includeAdultContent || !KKPhimParsing.isAdultContent(it.category) }
+            .mapNotNull { it.toSearchResponse(data.imageCdn) }
+            .toList()
         val pagination = data.params?.pagination
         val hasNext = when {
             pagination?.currentPage != null && pagination.totalPages != null ->
                 pagination.currentPage < pagination.totalPages
-            else -> results.size >= PAGE_SIZE
+            else -> data.items.size >= PAGE_SIZE
         }
 
         return newHomePageResponse(request, results, hasNext)
@@ -94,7 +112,12 @@ class KKPhimProvider : MainAPI() {
         ).parsedSafe<KKPhimListResponse>() ?: return emptyList()
 
         val data = response.data ?: return emptyList()
-        return data.items.mapNotNull { it.toSearchResponse(data.imageCdn) }
+        val includeAdultContent = adultContentEnabled
+        return data.items
+            .asSequence()
+            .filter { includeAdultContent || !KKPhimParsing.isAdultContent(it.category) }
+            .mapNotNull { it.toSearchResponse(data.imageCdn) }
+            .toList()
     }
 
     override suspend fun load(url: String): LoadResponse {
@@ -102,6 +125,9 @@ class KKPhimProvider : MainAPI() {
             ?: throw ErrorLoadingException("KKPhim returned invalid detail JSON")
         val movie = response.movie
             ?: throw ErrorLoadingException(response.msg ?: "KKPhim returned no movie data")
+        if (!adultContentEnabled && KKPhimParsing.isAdultContent(movie.category)) {
+            throw ErrorLoadingException("Adult content is disabled in CloudStream settings")
+        }
         val title = movie.name?.takeIf { it.isNotBlank() }
             ?: throw ErrorLoadingException("KKPhim movie title is missing")
         val type = movie.cloudstreamType()
@@ -259,5 +285,6 @@ class KKPhimProvider : MainAPI() {
         const val PAGE_SIZE = 20
         const val SEARCH_LIMIT = 50
         const val PLAYBACK_REFERER = "https://kkphim.com/"
+        const val ADULT_GENRE_SLUG = "phim-18"
     }
 }

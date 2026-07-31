@@ -1,7 +1,9 @@
 package com.kkphimgenres
 
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class KKPhimParsingTest {
@@ -77,5 +79,18 @@ class KKPhimParsingTest {
         assertEquals("CAM", KKPhimParsing.cardQuality("cam"))
         assertNull(KKPhimParsing.cardQuality("FHD"))
         assertNull(KKPhimParsing.cardQuality("HD"))
+    }
+
+    @Test
+    fun `identifies adult content by category slug or name`() {
+        assertTrue(
+            KKPhimParsing.isAdultContent(listOf(KKPhimNamedValue(slug = "phim-18"))),
+        )
+        assertTrue(
+            KKPhimParsing.isAdultContent(listOf(KKPhimNamedValue(name = "Phim 18+"))),
+        )
+        assertFalse(
+            KKPhimParsing.isAdultContent(listOf(KKPhimNamedValue(name = "Kinh Dị", slug = "kinh-di"))),
+        )
     }
 }

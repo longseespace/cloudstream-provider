@@ -64,6 +64,13 @@ internal object KKPhimParsing {
         return quality?.trim()?.takeIf { it.equals("CAM", ignoreCase = true) }?.uppercase()
     }
 
+    fun isAdultContent(categories: List<KKPhimNamedValue>): Boolean {
+        return categories.any { category ->
+            category.slug.equals("phim-18", ignoreCase = true) ||
+                category.name.equals("Phim 18+", ignoreCase = true)
+        }
+    }
+
     private fun String?.containsAny(vararg values: String): Boolean {
         return this != null && values.any { contains(it, ignoreCase = true) }
     }

@@ -8,10 +8,27 @@ api="https://phimapi.com"
 tmp_dir="$(mktemp -d)"
 trap 'rm -rf "$tmp_dir"' EXIT
 
+genres_json="$tmp_dir/genres.json"
 genre_json="$tmp_dir/genre.json"
 detail_json="$tmp_dir/detail.json"
 search_json="$tmp_dir/search.json"
 playlist="$tmp_dir/playlist.m3u8"
+
+expected_genres='[
+  "bi-an", "chien-tranh", "chinh-kich", "co-trang", "gia-dinh", "hai-huoc",
+  "hanh-dong", "hinh-su", "hoc-duong", "khoa-hoc", "kinh-di", "kinh-dien",
+  "lich-su", "mien-tay", "phim-18", "phim-ngan", "phieu-luu", "than-thoai",
+  "the-thao", "tre-em", "tai-lieu", "tam-ly", "tinh-cam", "vien-tuong",
+  "vo-thuat", "am-nhac"
+]'
+
+curl --fail --silent --show-error --location \
+  "$api/the-loai" > "$genres_json"
+
+jq -e --argjson expected "$expected_genres" '
+  (.status == "success" or .status == true) and
+  (([.data.items[].slug] | sort) == ($expected | sort))
+' "$genres_json" >/dev/null
 
 curl --fail --silent --show-error --location \
   "$api/v1/api/the-loai/kinh-di?page=1&limit=5" > "$genre_json"

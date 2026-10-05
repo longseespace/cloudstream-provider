@@ -17,9 +17,9 @@ buildscript {
         // R8 bundled by the upstream template's AGP without moving to AGP 9,
         // whose DSL is not yet compatible with the CloudStream Gradle plugin.
         classpath("com.android.tools:r8:9.1.31")
-        // Cloudstream gradle plugin which makes everything work and builds plugins
-        // JitPack's bare -SNAPSHOT currently advertises missing timestamped artifacts.
-        classpath("com.github.recloudstream:gradle:master-SNAPSHOT")
+        // Pin a published revision: JitPack's moving snapshots can advertise
+        // timestamped artifacts that do not exist on fresh CI runners.
+        classpath("com.github.recloudstream:gradle:81b1d424d2")
         // Keep this aligned with the metadata version used by the current CloudStream stub.
         classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:2.4.0")
     }

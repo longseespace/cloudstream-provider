@@ -1,5 +1,6 @@
 package com.motchill
 
+import android.util.Log
 import com.lagradost.cloudstream3.*
 import com.lagradost.cloudstream3.LoadResponse.Companion.addActors
 import com.lagradost.cloudstream3.utils.AppUtils.tryParseJson
@@ -55,13 +56,13 @@ class MotChillProvider : MainAPI() {
         if (request.data == "/the-loai/phim-18" && !settingsForProvider.enableAdult) {
             return newHomePageResponse(request, emptyList<SearchResponse>(), false)
         }
-        val result = MotChillParsing.listing(app.get("$mainUrl${request.data}", params = mapOf("page" to page.toString())).document)
+        val result = MotChillParsing.listing(app.get("$mainUrl${request.data}", params = mapOf("page" to page.toString())).motChillDocument())
         return newHomePageResponse(request, result.cards.map { it.toSearchResponse() }, result.hasNext)
     }
 
     override suspend fun search(query: String): List<SearchResponse> {
         if (query.isBlank()) return emptyList()
-        return MotChillParsing.listing(app.get("$mainUrl/", params = mapOf("search" to query.trim())).document)
+        return MotChillParsing.listing(app.get("$mainUrl/", params = mapOf("search" to query.trim())).motChillDocument())
             .cards.map { it.toSearchResponse() }
     }
 
@@ -79,10 +80,10 @@ class MotChillProvider : MainAPI() {
         }
 
     override suspend fun load(url: String): LoadResponse {
-        val movie = MotChillParsing.detail(app.get(url).document)
+        val movie = MotChillParsing.detail(app.get(url).motChillDocument())
         if (movie.adult && !settingsForProvider.enableAdult) throw ErrorLoadingException("Adult content is disabled")
         val watch = movie.watchUrl ?: throw ErrorLoadingException("MotChill has no released episodes for this title")
-        val episodes = MotChillParsing.episodes(app.get(watch).document)
+        val episodes = MotChillParsing.episodes(app.get(watch).motChillDocument())
         val result = if (movie.series) {
             if (episodes.isEmpty()) throw ErrorLoadingException("MotChill returned no episodes")
             newTvSeriesLoadResponse(movie.title, url, TvType.TvSeries, episodes.map { entry ->
@@ -115,8 +116,12 @@ class MotChillProvider : MainAPI() {
         var lastError: Exception? = null
         for (source in sources.distinctBy { it.url }) {
             try {
-                val doc = app.get(source.url).document
-                for (player in MotChillParsing.players(doc)) {
+                val response = app.get(source.url)
+                val doc = response.motChillDocument()
+                val players = MotChillParsing.players(doc)
+                Log.i("MotChill", "episode HTTP=${response.code} players=${players.size}")
+                if (players.isEmpty()) throw ErrorLoadingException("MotChill episode page returned no player servers")
+                for (player in players) {
                     try {
                         val display = "${source.server} · ${player.name}"
                         val direct = MotChillParsing.wrappedStream(player.url)
@@ -124,8 +129,11 @@ class MotChillProvider : MainAPI() {
                         when {
                             direct != null -> emitMedia(direct, source.url, display, emit)
                             MotChillParsing.isVsmov(player.url) -> {
-                                val embed = MotChillParsing.vsmov(app.get(player.url, referer = source.url).document)
-                                embed.stream?.let { emitMedia(it, player.url, display, emit) }
+                                val embedResponse = app.get(player.url, referer = source.url)
+                                val embed = MotChillParsing.vsmov(embedResponse.motChillDocument())
+                                Log.i("MotChill", "VSmov HTTP=${embedResponse.code} stream=${embed.stream != null} subtitles=${embed.subtitles.size}")
+                                val stream = embed.stream ?: throw ErrorLoadingException("MotChill VSmov page returned no stream")
+                                emitMedia(stream, embedResponse.url, display, emit)
                                 embed.subtitles.forEach { emitSubtitle(SubtitleFile(it.language, it.url)) }
                             }
                             else -> loadExtractor(player.url, source.url, emitSubtitle, emit)
@@ -133,13 +141,16 @@ class MotChillProvider : MainAPI() {
                     } catch (error: Exception) {
                         if (error is CancellationException) throw error
                         lastError = error // A failed host must not hide another working server.
+                        Log.w("MotChill", "player failed host=${java.net.URI(player.url).host} error=${error.javaClass.simpleName}")
                     }
                 }
             } catch (error: Exception) {
                 if (error is CancellationException) throw error
                 lastError = error
+                Log.w("MotChill", "episode failed error=${error.javaClass.simpleName}")
             }
         }
+        Log.i("MotChill", "extraction complete streams=${seen.size} subtitles=${subtitles.size}")
         if (seen.isEmpty()) throw ErrorLoadingException("MotChill: no playable streams found${lastError?.message?.let { ": $it" }.orEmpty()}")
         return true
     }

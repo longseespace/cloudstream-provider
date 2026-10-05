@@ -1,0 +1,62 @@
+[
+    {
+        "fileHash": "sha256-8855c79c2c76c084970f3efddabc0263a8f034fe8229e22fbf323c039c16da34",
+        "apiVersion": 1,
+        "repositoryUrl": "https://github.com/longseespace/cloudstream-provider",
+        "fileSize": 33993,
+        "status": 1,
+        "language": "vi",
+        "authors": [
+            "Daniel"
+        ],
+        "tvTypes": [
+            "Movie",
+            "TvSeries"
+        ],
+        "version": 3,
+        "internalName": "KKPhimGenresProvider",
+        "description": "KKPhim organized by genre, using only the KKPhim API",
+        "url": "https://raw.githubusercontent.com/longseespace/cloudstream-provider/builds/KKPhimGenresProvider.cs3",
+        "name": "KKPhimGenresProvider"
+    },
+    {
+        "fileHash": "sha256-7d49df8a82f52d8523adfc07818f3175c7611719fe6544bc161452adc9c00a12",
+        "apiVersion": 1,
+        "repositoryUrl": "https://github.com/longseespace/cloudstream-provider",
+        "fileSize": 37426,
+        "status": 1,
+        "language": "vi",
+        "authors": [
+            "Daniel"
+        ],
+        "tvTypes": [
+            "Movie",
+            "TvSeries"
+        ],
+        "version": 2,
+        "internalName": "MotChillProvider",
+        "description": "MotChill / MotPhim: movies, series and genre rows, with multiple servers",
+        "url": "https://raw.githubusercontent.com/longseespace/cloudstream-provider/builds/MotChillProvider.cs3",
+        "name": "MotChillProvider"
+    },
+    {
+        "fileHash": "sha256-3610ada78e71ce69e8913ed110f2260a16e010f0dce7c4849565fcdc6545ac15",
+        "apiVersion": 1,
+        "repositoryUrl": "https://github.com/longseespace/cloudstream-provider",
+        "fileSize": 41065,
+        "status": 1,
+        "language": "vi",
+        "authors": [
+            "Daniel"
+        ],
+        "tvTypes": [
+            "Movie",
+            "TvSeries"
+        ],
+        "version": 1,
+        "internalName": "NguonCGenresProvider",
+        "description": "NguonC by genre: movies, series, and multiple language servers via its public API",
+        "url": "https://raw.githubusercontent.com/longseespace/cloudstream-provider/builds/NguonCGenresProvider.cs3",
+        "name": "NguonCGenresProvider"
+    }
+]

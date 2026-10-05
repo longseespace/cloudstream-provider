@@ -18,7 +18,8 @@ buildscript {
         // whose DSL is not yet compatible with the CloudStream Gradle plugin.
         classpath("com.android.tools:r8:9.1.31")
         // Cloudstream gradle plugin which makes everything work and builds plugins
-        classpath("com.github.recloudstream:gradle:-SNAPSHOT")
+        // JitPack's bare -SNAPSHOT currently advertises missing timestamped artifacts.
+        classpath("com.github.recloudstream:gradle:master-SNAPSHOT")
         // Keep this aligned with the metadata version used by the current CloudStream stub.
         classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:2.4.0")
     }

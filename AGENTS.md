@@ -2,7 +2,16 @@
 
 ## Product boundary
 
-This repository contains one minimal CloudStream provider: `KKPhimGenresProvider`.
+This repository contains independent CloudStream providers: `KKPhimGenresProvider`, `MotChillProvider`, and `NguonCGenresProvider`.
+
+NguonC uses its public JSON catalog/detail API and the public StreamC playback
+bootstrap/issue protocol for embeds returned by that API. Keep its models and
+playback handling in its own module, with no TMDB network requests. Preserve
+language servers and resolve temporary playback grants only when playing.
+
+The following API-only constraints apply to KKPhim. MotChill is explicitly authorized
+to parse public MotPhim catalog/episode HTML and public embedded-player sources.
+Keep its parsing/extraction isolated in its own module; do not change KKPhim behavior.
 
 - Use only documented/public KKPhim API responses.
 - Do not add TMDB network requests, TMDB API keys, or title-search fallbacks.
@@ -28,6 +37,15 @@ For provider changes, run:
 ./scripts/check-api.sh
 ./gradlew KKPhimGenresProvider:make makePluginsJson
 ```
+
+For MotChill changes also run `./gradlew MotChillProvider:make` and opt-in live
+checks with `MOTCHILL_LIVE_TEST=1 ./gradlew MotChillProvider:testDebugUnitTest --rerun-tasks`.
+Live tests must cover catalog pagination, search, episode grouping, and actual
+public HLS/subtitle URLs. Do not claim on-device playback based on these alone.
+
+For NguonC changes, additionally run `./gradlew NguonCGenresProvider:make` and
+`NGUONC_LIVE_TEST=1 ./gradlew NguonCGenresProvider:testDebugUnitTest --rerun-tasks`.
+Use `NguonCGenresProvider:deployWithAdb` when testing that plugin on Android.
 
 If an Android device is connected, also run:
 

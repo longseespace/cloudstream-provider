@@ -1,4 +1,64 @@
-# KKPhim Genres Provider
+# CloudStream Providers: KKPhim Genres, MotChill, and NguonC Genres
+
+## NguonC Genres
+
+`NguonCGenresProvider` is an independent API-backed extension for
+<https://phim.nguonc.com/api-document>. It includes recently updated titles and
+all 22 genres listed in NguonC's documentation navigation. The public API currently
+documents no genre-taxonomy endpoint, so those genre slugs are kept in the module.
+The adult genre follows CloudStream's adult setting; adult-tagged details are
+blocked when disabled. Catalog/search responses currently omit category metadata,
+so they cannot be completely filtered for adult content before opening details.
+
+- Catalog pagination uses `paginate.current_page` / `total_page`.
+- Search, metadata, cast names, posters and episodes come from the API.
+- Matching episodes are grouped across Vietsub, Thuyết Minh and Lồng Tiếng servers.
+- Card badges show language and available episode counts, with CAM when supplied.
+- TMDB/IMDb IDs are retained for tracking, with no external metadata requests.
+- Playback reloads episode data, then obtains fresh standard HLS grants from the
+  public StreamC bootstrap/issue flow. Direct API HLS/MP4 links are also supported;
+  other embeds go through CloudStream's installed extractors.
+- Browser-verification requirements, blocked hosts and upstream failures are
+  reported rather than treated as playable links. One failed server does not
+  prevent another from working.
+
+Build: `./gradlew NguonCGenresProvider:make makePluginsJson`
+
+Tests: `./gradlew NguonCGenresProvider:testDebugUnitTest`
+
+Opt-in live integration check (pagination, search, movie/series metadata, grouped
+episodes, fresh HLS playlists and media segments):
+`NGUONC_LIVE_TEST=1 ./gradlew NguonCGenresProvider:testDebugUnitTest --rerun-tasks`
+
+The release script includes the plugin in `dist/`; the existing Build workflow
+automatically discovers the module. These files are not published until the
+changes are pushed and the workflow succeeds. Local/API tests do not verify
+on-device playback, casting or downloading.
+
+## MotChill
+
+`MotChillProvider` is a separate extension for `https://motphimchilll.fun`.
+It includes new movies, series, movies, theatrical releases, dubbed titles, and
+the genres listed in the site's navigation (the 18+ row follows CloudStream settings).
+Rows paginate using the site's next-page links. Search, posters, descriptions,
+cast, and episode lists are parsed from public HTML, without TMDB or API keys.
+
+Episodes are sorted numerically and grouped across language servers. Playback
+supports direct HLS/MP4, KKPhim player wrappers, and VSmov HLS with external
+Vietnamese/English subtitles. Other embeds are passed to CloudStream's extractors;
+their support depends on the app. URLs are resolved when playing rather than
+storing CDN links in the catalog. Unavailable servers cannot be repaired by the plugin.
+
+Build: `./gradlew MotChillProvider:make makePluginsJson`
+
+Live contract check (including Lanterns season 1):
+`MOTCHILL_LIVE_TEST=1 ./gradlew MotChillProvider:testDebugUnitTest --rerun-tasks`
+
+The same release script and existing repository URL distribute both extensions.
+Adding the module locally does not publish it: push the changes to `main` and wait
+for the Build workflow before refreshing the repository in CloudStream.
+
+## KKPhim Genres
 
 A small, transparent CloudStream provider backed only by KKPhim's public API. The home page is organized by genre instead of content type or country.
 

@@ -13,9 +13,10 @@ dist="$root/dist"
 cd "$root"
 GITHUB_REPOSITORY="$repository" ./gradlew test make makePluginsJson
 
-rm -rf "$dist"
 mkdir -p "$dist"
-find KKPhimGenresProvider/build -maxdepth 1 -name '*.cs3' -exec cp {} "$dist/" \;
+for module in KKPhimGenresProvider MotChillProvider NguonCGenresProvider; do
+  find "$module/build" -maxdepth 1 -name '*.cs3' -exec cp {} "$dist/" \;
+done
 cp build/plugins.json "$dist/plugins.json"
 
 jq --arg url "https://raw.githubusercontent.com/$repository/builds/plugins.json" \
